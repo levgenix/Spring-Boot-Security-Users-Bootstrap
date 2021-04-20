@@ -18,6 +18,7 @@ import ru.itsinfo.springbootsecurityusersbootstrap.model.User;
 import ru.itsinfo.springbootsecurityusersbootstrap.repository.RoleRepository;
 import ru.itsinfo.springbootsecurityusersbootstrap.repository.UserRepository;
 
+import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 
@@ -74,14 +75,27 @@ public class AppServiceImpl implements AppService {
         return userRepository.findAll(Sort.by(Sort.Direction.ASC, "firstName", "lastName"));
     }
 
+    @Override
     public User findUser(Long userId) throws IllegalArgumentException {
         return userRepository.findById(userId).orElseThrow(() ->
                 new IllegalArgumentException(String.format("User with ID %d not found", userId)));
     }
 
     @Override
-    public boolean saveUser(User user, BindingResult bindingResult, Model model) {
-        return true;
+    public void insertUser(User user, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+        if (!bindingResult.hasErrors()) {
+            String oldPassword = user.getPassword();
+            try {
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
+                userRepository.save(user);
+            } catch (DataIntegrityViolationException e) {
+                user.setPassword(oldPassword);
+                addErrorIfDataIntegrityViolationException(bindingResult);
+                addRedirectAttributesIfErrorsExists(user, bindingResult, redirectAttributes);
+            }
+        } else {
+            addRedirectAttributesIfErrorsExists(user, bindingResult, redirectAttributes);
+        }
     }
 
     @Override
@@ -97,15 +111,22 @@ public class AppServiceImpl implements AppService {
                 userRepository.save(user);
             } catch (DataIntegrityViolationException e) {
                 user.setPassword(oldPassword);
-                bindingResult.addError(new FieldError(bindingResult.getObjectName(),
-                        "email", "E-mail must be unique"));
-                redirectAttributes.addFlashAttribute("user", user);
-                redirectAttributes.addFlashAttribute("bindingResult", bindingResult);
+                addErrorIfDataIntegrityViolationException(bindingResult);
+                addRedirectAttributesIfErrorsExists(user, bindingResult, redirectAttributes);
             }
         } else {
-            redirectAttributes.addFlashAttribute("user", user);
-            redirectAttributes.addFlashAttribute("bindingResult", bindingResult);
+            addRedirectAttributesIfErrorsExists(user, bindingResult, redirectAttributes);
         }
+    }
+
+    private void addErrorIfDataIntegrityViolationException(BindingResult bindingResult) {
+        bindingResult.addError(new FieldError(bindingResult.getObjectName(),
+                "email", "E-mail must be unique"));
+    }
+
+    private void addRedirectAttributesIfErrorsExists(User user, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("user", user);
+        redirectAttributes.addFlashAttribute("bindingResult", bindingResult);
     }
 
     /**

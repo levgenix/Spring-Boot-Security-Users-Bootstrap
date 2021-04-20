@@ -21,9 +21,6 @@ public class IndexController {
 		this.appService = appService;
 	}
 
-	// todo
-	// https://www.baeldung.com/spring-security-csrf
-	// https://docs.spring.io/spring-security/site/docs/3.2.0.CI-SNAPSHOT/reference/html/csrf.html
 	@GetMapping("/")
 	public String welcomePage(Model model, HttpSession session,
 							  @SessionAttribute(required = false, name = "Authentication-Exception") LoginException authenticationException,
@@ -32,8 +29,8 @@ public class IndexController {
 		return "index";
 	}
 
-	@GetMapping("/403") // todo
+	@GetMapping("/access-denied")
 	public String accessDeniedPage() {
-		return "access-denied";
+		return "access-denied-page";
 	}
 }

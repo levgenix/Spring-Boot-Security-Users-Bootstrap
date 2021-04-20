@@ -25,22 +25,19 @@ public class AdminController {
     }
 
     @GetMapping({"", "list"})
-    public String getAllUsers(Model model) {
+    public String showAllUsers(Model model) {
         model.addAttribute("users", appService.findAllUsers());
         model.addAttribute("allRoles", appService.findAllRoles());
 
-        model.addAttribute("showUserProfile", model.containsAttribute("user"));
+        model.addAttribute("showUserProfile",
+                model.containsAttribute("user") && !((User) model.getAttribute("user")).isNew());
+        model.addAttribute("showNewUserForm",
+                model.containsAttribute("user") && ((User) model.getAttribute("user")).isNew());
+        if (!model.containsAttribute("user")) {
+            model.addAttribute("user", new User());
+        }
 
         return "admin-page";
-    }
-
-    @PatchMapping()
-    public String update(@Valid @ModelAttribute("user") User user,
-                         BindingResult bindingResult,
-                         RedirectAttributes redirectAttributes) {
-        appService.updateUser(user, bindingResult, redirectAttributes);
-
-        return "redirect:/admin";
     }
 
     @GetMapping("/{id}/profile")
@@ -54,60 +51,27 @@ public class AdminController {
         }
     }
 
+    @PatchMapping()
+    public String updateUser(@Valid @ModelAttribute("user") User user,
+                         BindingResult bindingResult,
+                         RedirectAttributes redirectAttributes) {
+        appService.updateUser(user, bindingResult, redirectAttributes);
+
+        return "redirect:/admin";
+    }
+
     @DeleteMapping("")
     public String deleteUser(@ModelAttribute("user") User user) {
         appService.deleteUser(user.getId());
         return "redirect:/admin";
     }
 
-    /*@GetMapping(value = "/new")
-    public String addUserForm(@ModelAttribute("user") User user, Model model) {
-        model.addAttribute("allRoles", appService.findAllRoles());
-        return "user-form";
-    }*/
+    @PostMapping()
+    public String insertUser(@Valid @ModelAttribute("user") User user,
+                                   BindingResult bindingResult,
+                                   RedirectAttributes redirectAttributes) {
+        appService.insertUser(user, bindingResult, redirectAttributes);
 
-    /*@GetMapping("/{id}/edit")
-    public String editUserForm(@PathVariable(value = "id", required = true) Long userId, Model model) {
-        try {
-            model.addAttribute("user", appService.findUser(userId));
-        } catch (EmptyResultDataAccessException e) {
-            e.printStackTrace();
-            return "redirect:/admin";
-        }
-        model.addAttribute("allRoles", appService.findAllRoles());
-        return "user-form";
-    }*/
-
-    /*@PostMapping("/addNew")
-    public String addNew(User user) {
-        appService.addNew(user); //appService.update(user)
         return "redirect:/admin";
-    }*/
-
-    /*@PostMapping()
-    public String saveOrUpdateUser(@Valid @ModelAttribute("user") User user,
-                                   BindingResult bindingResult, Model model,
-                                   RedirectAttributes attributes) {
-        *//*try {
-            return appService.saveUser(user, bindingResult, model) ? "redirect:/admin" : "user-form";
-        } catch (AssertionFailure | UnexpectedRollbackException e) {
-            return "user-form";
-        }*//*
-        try {
-            //return appService.saveUser(user, bindingResult, model) ? "redirect:/admin" : "admin-page";
-
-            if (!appService.saveUser(user, bindingResult, model)) {
-                attributes.addFlashAttribute("badUser", user);
-            }
-            //return "redirect:/admin";
-        } catch (AssertionFailure | UnexpectedRollbackException e) {
-            //return "redirect:/admin";
-        }
-        return "redirect:/admin";
-    }*/
-
-    /*@ModelAttribute("badUser")
-    public User setBadUser(User user) {
-        return user;
-    }*/
+    }
 }

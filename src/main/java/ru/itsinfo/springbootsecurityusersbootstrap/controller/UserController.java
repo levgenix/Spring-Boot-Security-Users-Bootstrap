@@ -15,6 +15,6 @@ public class UserController {
     public String showUserInfo(@CurrentSecurityContext(expression = "authentication.principal") User principal,
                                Model model) {
         model.addAttribute("user", principal);
-        return "user-info";
+        return "fragments/user-info";
     }
 }

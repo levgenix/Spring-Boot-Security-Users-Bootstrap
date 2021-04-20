@@ -1,29 +1,4 @@
 $(document).ready(function () {
-    $('.edit-button-tmp').on('click', function (event) {
-        event.preventDefault();
-        /*        $.get($(this).attr('href'), function (user, status) {
-                    $('#userprofile-form #id').val(user.id);
-                    $('#userprofile-form #firstName').val(user.firstName);
-                    $('#userprofile-form #lastName').val(user.lastName);
-                    $('#userprofile-form #age').val(user.age);
-                    $('#userprofile-form #email').val(user.email);
-                    $('#userprofile-form #password').val(user.password);
-                });*/
-        // $('#inputId').prop('readonly', true); когда делитим
-
-        $.get({
-            url: $(this).attr('href'),
-            dataType: "html"
-        }).done(function (html) {
-            $('#userprofile-modal').replaceWith(html);
-            showUserProfile();
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.log('textStatus: ' + textStatus );
-            console.log('errorThrown: ' + errorThrown );
-            console.log('jqXHR: ' + jqXHR);
-        });
-    });
-
     $('.edit-button').on('click', function (event) {
         event.preventDefault();
         $('#user-profile').modal("show").find('.modal-dialog').load($(this).attr('href'), function(response, status, xhr) {
@@ -58,7 +33,3 @@ $(document).ready(function () {
         });
     });
 });
-
-function showUserProfile() {
-    $('#userprofile-modal').modal();
-}
